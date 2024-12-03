@@ -1,12 +1,9 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
-import Bus from './BusModel.js';
 
-
-
-
+// Define Ticket model first
 const Ticket = sequelize.define('Ticket', {
-    TicketId: {
+  TicketId: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
@@ -15,11 +12,10 @@ const Ticket = sequelize.define('Ticket', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Bus,
+      model: 'Bus', // Use the table name as a string reference
       key: 'BusId',
     },
   },
-
   departure: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -29,10 +25,10 @@ const Ticket = sequelize.define('Ticket', {
     allowNull: false,
   },
   startTime: {
-    type: DataTypes.DATE, // Consider using a more specific data type if needed (e.g., DATETIME)
+    type: DataTypes.DATE,
     allowNull: false,
   },
-  arrivalTime:{
+  arrivalTime: {
     type: DataTypes.DATE,
     allowNull: false,
   },
@@ -41,14 +37,20 @@ const Ticket = sequelize.define('Ticket', {
     allowNull: false,
   },
   price: {
-    type: DataTypes.DECIMAL(10, 2), // Adjust precision and scale as needed
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   }
 }, {
-  tableName: 'Ticket', // Name of the table in the database
-  timestamps: false,  // Disable createdAt and updatedAt fields
+  tableName: 'ticket',
+  timestamps: false,
 });
 
+// Import Bus after both models are defined
+import Bus from './BusModel.js';
+
+// Define the association after the models are defined
+Ticket.belongsTo(Bus, { foreignKey: 'BusId' });  // Define the reverse relationship
+Bus.hasMany(Ticket, { foreignKey: 'BusId' });
 
 
-export default Bus;
+export default Ticket;

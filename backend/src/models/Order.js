@@ -1,7 +1,5 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
-import User from './UserModel.js';
-import Food from './FoodModel.js';
 
 
 const Order = sequelize.define('Order', {
@@ -22,7 +20,7 @@ const Order = sequelize.define('Order', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Food,
+      model: Ticket,
       key: 'TicketId',
     },
   },
@@ -34,9 +32,23 @@ const Order = sequelize.define('Order', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  CreatedAt:
+  {
+    type: DataTypes.DATE,
+    allowNull: false,
+  }
+
 }, {
-  tableName: 'UserFoodOrders',
+  tableName: 'ticketorder',
   timestamps: false,
 });
+import User from './UserModel.js';
+import Ticket from './TicketModel.js';
+// Define the associations directly in the model file
+Order.belongsTo(User, { foreignKey: 'UserId' });
+Order.belongsTo(Ticket, { foreignKey: 'TicketId' });
+Ticket.hasMany(Order, { foreignKey: 'TicketId' });
+// Set up associations after defining the model
+User.hasMany(Order, { foreignKey: 'UserId' });
 
-export default UserFoodOrder;
+export default Order;

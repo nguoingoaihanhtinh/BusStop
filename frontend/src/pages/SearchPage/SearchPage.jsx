@@ -30,14 +30,14 @@ const SearchPage = () => {
     //   });
     // }
 
-    if (filters.levels && filters.levels.length > 0) {
-      filters.levels.forEach((level) => {
-        const levelString = levelMapping[level]; // Map the level number to its string value
-        if (levelString) {
+    if (filters.types && filters.types.length > 0) {
+      filters.types.forEach((type) => {
+        const typeString = levelMapping[type]; // Map the level number to its string value
+        if (typeString) {
           filterQuery.push({
             operator: "equal",
-            key: "difficultyLevel",
-            value: levelString, // Use the string value (easy, medium, hard)
+            key: "type",
+            value: typeString, // Use the string value (easy, medium, hard)
           });
         }
       });

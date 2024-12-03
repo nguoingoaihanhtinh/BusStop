@@ -1,4 +1,5 @@
 
+import TicketCard from "../../components/Ticket/TicketCard";
 import Banner from "./Banner";
 import Service from "./Service";
 
@@ -14,9 +15,22 @@ const HomePage = () => {
           <Service />
           {/* <HomeContent /> */}
         </div>
+        
       </div>
       <div className="banner2 flex justify-center">
-        {/* <Banner2 /> */}
+      <TicketCard
+        busName="Mustang Deluxe"
+        departure="Kathmandu"
+        destination="Mustang"
+        startTime="06:30 AM"
+        arrivalTime="06:45 PM"
+        price={1600}
+        seatsAvailable={5}
+        seatType="Sofa"
+        seatCapacity={35}
+        rating={4.5}
+      />
+
       </div>
       <div className="category px-25">
         {/* <CategorySection /> */}

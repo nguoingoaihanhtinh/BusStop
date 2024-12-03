@@ -6,7 +6,7 @@ import routes from "./routes/index.js";
 import setupSwagger from "./swagger.js";
 import open from "open";
 import bodyParser from "body-parser";
-
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 const server = express();
@@ -15,6 +15,7 @@ server.use(bodyParser.json());
 
 // Parse application/x-www-form-urlencoded
 server.use(bodyParser.urlencoded({ extended: true }));
+server.use(cookieParser());
 server.use(express.json());
 server.use(
   cors({

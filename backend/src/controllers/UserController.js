@@ -2,8 +2,8 @@ import { Op } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/UserModel.js'; // Replace with your Sequelize User model
-import UserFoodSaved from '../models/UserFoodSaved.js'; // Replace with your UserFoodSaved model
-import UserFoodOrders from '../models/OrderModel.js'; // Replace with your UserFoodOrders model
+
+import Order from '../models/Order.js';
 
 // Helper to generate JWT
 const generateJwtToken = (user, secret, expiresIn = '1d') => {
@@ -32,14 +32,9 @@ export const checkJwt = async (req, res) => {
 
         if (!user) return res.status(404).json({ message: 'User not found.' });
 
-        const savedFoodIds = await UserFoodSaved.findAll({
+        const cartItems = await Order.findAll({
             where: { userId: user.id },
-            attributes: ['foodId'],
-        });
-
-        const cartItems = await UserFoodOrders.findAll({
-            where: { userId: user.id },
-            include: ['Food'], // Assuming you have a relation to the Food model
+            include: ['Ticket'], 
         });
 
         return res.json({
@@ -50,7 +45,6 @@ export const checkJwt = async (req, res) => {
                 email: user.email,
                 address: user.address,
                 avatar: user.avatar,
-                savedFoods: savedFoodIds.map((item) => item.foodId),
                 cart: cartItems,
             },
         });
@@ -111,61 +105,7 @@ export const logoutUser = (req, res) => {
     res.json({ message: 'Logged out successfully.' });
 };
 
-// Save food for user
-export const addFoodSaved = async (req, res) => {
-    const { userId, foodId } = req.body;
 
-    const existingFood = await UserFoodSaved.findOne({ where: { userId, foodId } });
-
-    if (existingFood) {
-        return res.status(409).json({ message: 'Food item already saved.' });
-    }
-
-    await UserFoodSaved.create({ userId, foodId });
-    res.json({ message: 'Food item saved successfully.' });
-};
-
-// Remove saved food
-export const removeFoodSaved = async (req, res) => {
-    const { userId, foodId } = req.body;
-
-    const food = await UserFoodSaved.findOne({ where: { userId, foodId } });
-
-    if (!food) {
-        return res.status(404).json({ message: 'Food item not found.' });
-    }
-
-    await food.destroy();
-    res.json({ message: 'Food item removed from saved foods.' });
-};
-
-// Paginate saved food
-export const getAllFoodSaved = async (req, res) => {
-    const { userId, page = 1, limit = 10 } = req.query;
-
-    if (!userId) {
-        return res.status(400).json({ message: 'User ID is required.' });
-    }
-
-    const offset = (page - 1) * limit;
-
-    const { count, rows } = await UserFoodSaved.findAndCountAll({
-        where: { userId },
-        include: ['Food'], // Include related Food model
-        offset,
-        limit,
-    });
-
-    res.json({
-        data: rows,
-        pagination: {
-            currentPage: parseInt(page, 10),
-            pageSize: parseInt(limit, 10),
-            totalItems: count,
-            totalPages: Math.ceil(count / limit),
-        },
-    });
-};
 
 // Update user
 export const updateUser = async (req, res) => {
@@ -185,3 +125,53 @@ export const updateUser = async (req, res) => {
     await user.save();
     res.json({ message: 'User updated successfully.' });
 };
+// Get orders of the current user
+export const getUserOrders = async (req, res) => {
+    try {
+      // Extract the token
+      const token = req.cookies?.jwt || req.headers.authorization?.split(" ")[1];
+      if (!token) {
+        return res.status(401).json({ message: "No token found." });
+      }
+  
+      // Verify the token and get user ID
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await User.findByPk(decoded.id);
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+  
+      // Fetch orders with associated Ticket and Seats for the current user
+      const orders = await Order.findAll({
+        where: { UserId: user.UserId },
+        include: [
+          {
+            model: Ticket, // Ensure the 'Ticket' model association is set up correctly
+            include: [
+              {
+                model: Seat, // Ensure the 'Seat' model association is set up correctly
+              },
+            ],
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      });
+  
+      return res.status(200).json({
+        status: "success",
+        data: {
+          user: {
+            id: user.UserId,
+            Username: user.Username,
+          },
+          orders,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching user orders:", error);
+      return res.status(500).json({ message: "Failed to fetch user orders." });
+    }
+  };
+  
+  

@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
+
 const User = sequelize.define('User', {
   UserId: {
     type: DataTypes.INTEGER,
@@ -31,5 +32,7 @@ const User = sequelize.define('User', {
   tableName: 'Users', // Name of the table in the database
   timestamps: false,  // Disable createdAt and updatedAt fields
 });
+
+
 
 export default User;

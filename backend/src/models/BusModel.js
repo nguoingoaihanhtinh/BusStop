@@ -1,7 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-
 const Bus = sequelize.define('Bus', {
   BusId: {
     type: DataTypes.INTEGER,
@@ -35,8 +34,8 @@ const Bus = sequelize.define('Bus', {
     defaultValue: 0,
   }
 }, {
-  tableName: 'Bus', // Name of the table in the database
-  timestamps: false,  // Disable createdAt and updatedAt fields
+  tableName: 'bus',
+  timestamps: false,
 });
 
 export default Bus;
