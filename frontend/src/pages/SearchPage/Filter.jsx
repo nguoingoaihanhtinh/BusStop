@@ -1,10 +1,8 @@
-import Rating from '@/components/Rating/Rating'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import RangeSlider from '@/components/ui/slider'
-import { useGetCategoriesQuery } from '@/store/rtk/course.services'
-import { ChevronDown, Sliders, SlidersHorizontal } from 'lucide-react'
+
 import React, { useState } from 'react'
+import { useGetAllBusesQuery } from '../../redux/rtk/ticket.service';
+import RangeSlider from '../../components/ui/Slider';
+import { Button, Checkbox } from 'antd';
 const types = [
     {id:1, name: "AC deluxe"},{id:2, name: "Tourist AC"},{id:3, name: "Air suspension"},{id:4, name: "Tourist standard"}
 ];
@@ -20,7 +18,7 @@ const models = [
     const [selectedTypes, setSelectedTypes] = useState([]);
     const [selectedModels, setSelectedModels] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 3500000]); 
-    const { data, error, isLoading } = useGetCategoriesQuery();
+    const { data, error, isLoading } = useGetAllBusesQuery();
     // console.log("Categories Data:", categories)
     // Handle rating change (filter by rating >= selected)
     const handleModelChange = (model) => {

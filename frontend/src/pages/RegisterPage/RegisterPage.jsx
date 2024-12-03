@@ -21,7 +21,6 @@ export default function RegisterPage() {
         email: data.email,
         userName: data.firstName + data.lastName,
         password: data.password,
-        role: "User",
       }).unwrap();
       window.location.href = "/";
     } catch (error) {

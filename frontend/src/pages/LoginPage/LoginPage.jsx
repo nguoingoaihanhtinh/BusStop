@@ -23,10 +23,12 @@ export default function LoginPage() {
     //   window.location.reload();
     // } else {
     // }
+    console.log('email',email);
+    console.log('pass',password);
     try {
       await login({
-        email,
-        password,
+        Email: email, // Capitalize key if required
+        Password: password,
       }).unwrap();
 
       window.location.href = "/";
