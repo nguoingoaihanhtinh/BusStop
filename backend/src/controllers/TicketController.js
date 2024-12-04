@@ -140,6 +140,7 @@ export const getNewestTickets = async (req, res) => {
 };
 
 // Get a single ticket by ID
+
 export const getTicketById = async (req, res) => {
   try {
     const { id } = req.params; // Use req.params to get the ticket ID
@@ -148,8 +149,43 @@ export const getTicketById = async (req, res) => {
       return res.status(400).json({ error: "Ticket ID is required" });
     }
 
+    // Initialize where clause for bus filtering (similar to getAllTickets)
+    const busWhereClause = {};
+
+    const { types, models } = req.query; // Extract the bus types and models from query params
+
+    if (types) {
+      const typesArray = types.split(","); // Split comma-separated string into an array
+      busWhereClause.busType = { [Op.in]: typesArray }; // Filter by bus type
+    }
+
+    if (models) {
+      const modelsArray = models.split(","); // Split comma-separated string into an array
+      busWhereClause.busModel = { [Op.in]: modelsArray }; // Filter by bus model
+    }
+
+    // Fetch the ticket by ID and include the Bus information
     const ticket = await Ticket.findOne({
       where: { TicketId: id }, // Use the correct column name for the ticket ID
+      include: [
+        {
+          model: Bus,
+          where: busWhereClause, // Apply filters to Bus model if provided
+          attributes: [
+            "Name",
+            "busType",
+            "busModel",
+            "seatType",
+            "seatCapacity",
+            "Rating",
+            "NumberRating",
+          ], // Select specific bus fields
+        },
+        {
+          model: Seat,
+          attributes: ["SeatId", "SeatNumber", "Status"], // Include seat attributes
+        },
+      ],
     });
 
     if (!ticket) {

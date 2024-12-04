@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/UserModel.js";
 import Order from "../models/Order.js";
+import Seat from "../models/SeatModel.js";
+import { Op } from "sequelize";
 
 // Environment variables for security
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
@@ -167,4 +169,121 @@ export const login = async (req, res) => {
       res.status(500).json({ message: "Failed to fetch user orders." });
     }
   };
+  export const createOrder = async (req, res) => {
+    const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
   
+    try {
+      // Verify JWT token to get user ID
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const userId = decoded.id;
+  
+      // Extract order details from the request body
+      const { ticketId, selectedSeats, totalPrice, address, CreatedAt  } = req.body;
+  
+      // Validate input
+      if (!ticketId || !Array.isArray(selectedSeats) || selectedSeats.length === 0 || !totalPrice) {
+        return res.status(400).json({ message: "Invalid or incomplete order details" });
+    }
+  
+      // Create the new order
+      const newOrder = await Order.create({
+        UserId: userId,
+        TicketId: ticketId,
+        SelectedSeats: JSON.stringify(selectedSeats), // Convert seats array to JSON string
+        TotalPrice: totalPrice,
+        Address: address,
+        CreatedAt: new Date(),
+      });
+      await Seat.update(
+        { Status: "reserved" },
+        { where: { SeatNumber: { [Op.in]: selectedSeats }, TicketId: ticketId } }
+      );
+      res.status(201).json({
+        status: "success",
+        message: "Order created successfully",
+        data: newOrder,
+      });
+    }  catch (error) {
+      if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+          return res.status(401).json({ message: "Invalid or expired token" });
+      }
+      console.error("Error creating order:", error.message || error);
+      res.status(500).json({ message: "Failed to create order", error: error.message });
+  }
+  };
+  // Controller to get user by ID
+export const getUserById = async (req, res) => {
+  const { id } = req.params; // Get user ID from URL parameters
+
+  try {
+    // Find the user by ID
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Respond with user details
+    return res.status(200).json({
+      status: "success",
+      data: {
+        id: user.UserId,
+        Username: user.Username,
+        Email: user.Email,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const getOrderById = async (req, res) => {
+  const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "No token found." });
+  }
+
+  try {
+    // Verify token and get user ID
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const { orderId } = req.params;
+
+    // Fetch the specific order by OrderId for the current user
+    const order = await Order.findOne({
+      where: { OrderId: orderId, UserId: user.UserId },
+      include: [
+        {
+          association: "Ticket", // Ensure this association exists in your model definitions
+          include: ["Seats"], // Include nested associations if necessary
+        },
+      ],
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user.UserId,
+          Username: user.Username,
+        },
+        order,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    res.status(500).json({ message: "Failed to fetch order." });
+  }
+};

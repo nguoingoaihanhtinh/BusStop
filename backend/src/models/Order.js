@@ -24,18 +24,15 @@ const Order = sequelize.define('Order', {
       key: 'TicketId',
     },
   },
-  Quantity: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  Note: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
   CreatedAt:
   {
     type: DataTypes.DATE,
     allowNull: false,
+  },
+  Address:
+  {
+    type: DataTypes.STRING,
+    allowNull:false,
   }
 
 }, {

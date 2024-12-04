@@ -7,6 +7,7 @@ import RegisterPage from "../pages/RegisterPage/RegisterPage";
 import SearchPage from "../pages/SearchPage/SearchPage";
 import TicketDetail from "../pages/TicketDetail/TicketDetail";
 import CheckoutPage from "../pages/CheckoutPage/CheckoutPage";
+import InvoicePage from "../pages/Invoice/InvoicePage";
 
 
 
@@ -18,6 +19,7 @@ const Router = createBrowserRouter(
         <Route path="search" element={<SearchPage/>} />
         <Route path="ticket/:ticketId" element={<TicketDetail/>} />
         <Route path="checkout" element={<CheckoutPage/>} />
+        <Route path="invoice" element={<InvoicePage/>} />
       </Route>
       <Route path="login" element={<LoginPage />} />
       <Route path="register" element={<RegisterPage />} />
