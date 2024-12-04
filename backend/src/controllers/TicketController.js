@@ -3,33 +3,89 @@
 import { Op } from "sequelize";
 import Ticket from "../models/TicketModel.js";
 import Seat from "../models/SeatModel.js";
-// Get all tickets with optional filtering by departure and destination
+import Bus from "../models/BusModel.js";
+
+
 export const getAllTickets = async (req, res) => {
   try {
-    const { page = 1, limit = 10, departure, destination } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      departure,
+      destination,
+      types, // Now receiving as a string, e.g., "VIP"
+      models, // Now receiving as a string, e.g., "Volkswagen"
+      priceMin,
+      priceMax,
+    } = req.query;
+    
     const offset = (page - 1) * limit;
 
-    // Initialize where clause for filtering
+    // Initialize where clause for ticket filtering
     const whereClause = {};
 
     if (departure) {
-      whereClause.departure = { [Op.like]: `%${departure}%` }; // Filter tickets by departure
+      whereClause.departure = { [Op.like]: `%${departure}%` }; // Filter by departure
     }
 
     if (destination) {
-      whereClause.destination = { [Op.like]: `%${destination}%` }; // Filter tickets by destination
+      whereClause.destination = { [Op.like]: `%${destination}%` }; // Filter by destination
     }
 
-    // Fetch tickets with pagination and filtering
+    if (priceMin || priceMax) {
+      whereClause.price = {
+        ...(priceMin && { [Op.gte]: parseFloat(priceMin) }),
+        ...(priceMax && { [Op.lte]: parseFloat(priceMax) }),
+      }; // Filter by price range
+    }
+
+    // Initialize include clause for bus filtering
+    const busWhereClause = {};
+
+    if (types) {
+      const typesArray = types.split(","); // Split comma-separated string into an array
+      busWhereClause.busType = { [Op.in]: typesArray }; // Filter by bus type
+    }
+
+    if (models) {
+      const modelsArray = models.split(","); // Split comma-separated string into an array
+      busWhereClause.busModel = { [Op.in]: modelsArray }; // Filter by bus model
+    }
+
+    // Fetch tickets with pagination, ticket filtering, and bus filtering
     const tickets = await Ticket.findAll({
       where: whereClause,
+      include: [
+        {
+          model: Bus,
+          where: busWhereClause, // Apply filters to Bus model
+          attributes: [
+            "Name",
+            "busType",
+            "busModel",
+            "seatType",
+            "seatCapacity",
+            "Rating",
+            "NumberRating",
+          ], // Select specific bus fields
+        },
+      ],
       limit: parseInt(limit, 10),
       offset: parseInt(offset, 10),
       order: [["TicketId", "ASC"]],
     });
 
     // Count the total number of tickets after filtering
-    const totalTickets = await Ticket.count({ where: whereClause });
+    const totalTickets = await Ticket.count({
+      where: whereClause,
+      include: [
+        {
+          model: Bus,
+          where: busWhereClause,
+        },
+      ],
+    });
+
     const totalPages = Math.ceil(totalTickets / limit);
 
     // Return tickets along with pagination data
@@ -48,6 +104,8 @@ export const getAllTickets = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch tickets" });
   }
 };
+
+
 
   
 // Get the newest tickets

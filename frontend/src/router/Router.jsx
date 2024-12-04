@@ -6,6 +6,7 @@ import LoginPage from "../pages/LoginPage/LoginPage";
 import RegisterPage from "../pages/RegisterPage/RegisterPage";
 import SearchPage from "../pages/SearchPage/SearchPage";
 import TicketDetail from "../pages/TicketDetail/TicketDetail";
+import CheckoutPage from "../pages/CheckoutPage/CheckoutPage";
 
 
 
@@ -15,7 +16,8 @@ const Router = createBrowserRouter(
       <Route path="*" element={<UserLayout />}>
         <Route index element={<HomePage />} />
         <Route path="search" element={<SearchPage/>} />
-        <Route path="ticket/:id" element={<TicketDetail/>} />
+        <Route path="ticket/:ticketId" element={<TicketDetail/>} />
+        <Route path="checkout" element={<CheckoutPage/>} />
       </Route>
       <Route path="login" element={<LoginPage />} />
       <Route path="register" element={<RegisterPage />} />

@@ -2,38 +2,58 @@ import React, { useEffect, useState } from 'react';
 import { GiSteeringWheel } from 'react-icons/gi';
 import { MdOutlineChair } from 'react-icons/md';
 
-const generateSeats = () => {
+// Function to generate seat data based on the seatLeft count
+const generateSeats = (seatLeft) => {
   const rows = ['A', 'B'];
   const seatData = [];
+  const totalSeats = 36; // Total number of seats (18 per row, 2 rows)
+  
+  // Create an array with "available" and "booked" statuses
+  let seatStatuses = Array(totalSeats).fill('booked'); // Initially, all seats are booked
+  for (let i = 0; i < seatLeft; i++) {
+    seatStatuses[i] = 'available'; // Set the first `seatLeft` seats to available
+  }
+
+  // Shuffle the seat statuses randomly
+  seatStatuses = seatStatuses.sort(() => Math.random() - 0.5);
+
+  // Assign the seat statuses to the seat data
+  let seatIndex = 0;
   rows.forEach((row) => {
     for (let i = 1; i <= 18; i++) {
+      const seatId = `${row}${i}`;
       seatData.push({
-        id: `${row}${i}`,
-        status: Math.random() > 0.5 ? 'available' : 'booked', // Randomly assign status
+        id: seatId,
+        status: seatStatuses[seatIndex], // Assign the randomized status
         price: 3000,
       });
+      seatIndex++;
     }
   });
+
   return seatData;
 };
 
-const busSeatData = generateSeats();
-
-const BusSeat = () => {
-  const [selectedSeats, setSelectedSeats] = useState([]);
+const BusSeat = ({ selectedSeats, setSelectedSeats, seatLeft }) => {
   const [showError, setShowError] = useState(false);
+  const [busSeatData, setBusSeatData] = useState([]);
+
+  useEffect(() => {
+    // Update seat data whenever seatLeft changes
+    setBusSeatData(generateSeats(seatLeft));
+  }, [seatLeft]);
 
   const handleSeatClick = (seatId) => {
     const seat = busSeatData.find((seat) => seat.id === seatId);
     if (seat.status === 'booked') {
-      return;
+      return; // If the seat is booked, do nothing
     }
     setSelectedSeats((prevSelectedSeats) => {
       if (prevSelectedSeats.includes(seatId)) {
         return prevSelectedSeats.filter((seat) => seat !== seatId);
       } else {
         if (prevSelectedSeats.length >= 10) {
-          setShowError(true);
+          setShowError(true); // Show error if more than 10 seats are selected
           return prevSelectedSeats;
         } else {
           return [...prevSelectedSeats, seatId];
@@ -62,62 +82,59 @@ const BusSeat = () => {
   };
 
   return (
-    <div className="w-full grid grid-cols-5 gap-10">
-      <div className="col-span-3 w-full flex items-center justify-center">
-        <div className="w-full">
-          <p className="text-base text-black font-medium text-center">
-            Click on available seats to reserve your seat.
-          </p>
-          {/* Seat Layout */}
-          <div className="w-full flex items-stretch gap-x-1.5">
-            <div className="w-10 h-fit">
-              <GiSteeringWheel className="text-3xl mt-7 text-black -rotate-90" />
-            </div>
-            {/* Rows */}
-            <div className="flex flex-col items-center border-l-2 border-dashed">
-              {['A', 'B'].map((row) => (
-                <div key={row} className="mb-4">
-                  <h6 className="text-lg font-bold text-center mb-2">{`Row ${row}`}</h6>
-                  <div className="w-full h-auto grid grid-cols-9 gap-x-5 justify-end">
-                    {busSeatData
-                      .filter((seat) => seat.id.startsWith(row))
-                      .map((seat) => (
-                        <div
-                          key={seat.id}
-                          className="flex items-center gap-x-0.5 cursor-pointer justify-between"
-                          onClick={() => handleSeatClick(seat.id)}
-                        >
-                          <h6 className="text-base text-black font-bold">{seat.id}</h6>
-                          <MdOutlineChair
-                            className={`text-3xl -rotate-90 ${getSeatName(seat)}`}
-                          />
-                        </div>
-                      ))}
-                  </div>
+    <div className="w-3/5 flex items-center justify-center shadow-lg h-full">
+      <div className="w-full border rounded-xl">
+        <p className="text-base text-black font-medium text-center pt-3">
+          Click on available seats to reserve your seat.
+        </p>
+        <div className="w-full flex items-center gap-x-1.5 py-2 px-3">
+          <div className="w-10 h-fit flex flex-col justify-center mx-5">
+            <GiSteeringWheel className="text-3xl mt-7 text-black -rotate-90" />
+          </div>
+          <div className="flex flex-col items-center border-l-2 border-dashed px-3 ">
+            {['A', 'B'].map((row) => (
+              <div key={row} className="mb-4">
+                <h6 className="text-lg font-bold text-center mb-2">{`Row ${row}`}</h6>
+                <div className="w-full h-auto grid grid-cols-9 gap-x-5 justify-end">
+                  {busSeatData
+                    .filter((seat) => seat.id.startsWith(row))
+                    .map((seat) => (
+                      <div
+                        key={seat.id}
+                        className="flex items-center gap-x-0.5 cursor-pointer justify-between"
+                        onClick={() => handleSeatClick(seat.id)}
+                      >
+                        <h6 className="text-base text-black font-bold">{seat.id}</h6>
+                        <MdOutlineChair
+                          className={`text-3xl -rotate-90 ${getSeatName(seat)}`}
+                        />
+                      </div>
+                    ))}
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Instructions Section */}
+        <div className="text-center border-t-2 border-dashed p-2">
+          <h6 className="text-lg font-bold">Seat Legend:</h6>
+          <div className="flex justify-center gap-x-4">
+            <div className="flex items-center">
+              <MdOutlineChair className="text-3xl text-black" />
+              <p className="ml-2 text-sm text-black-2">Available Seat</p>
+            </div>
+            <div className="flex items-center">
+              <MdOutlineChair className="text-3xl text-red-500" />
+              <p className="ml-2 text-sm text-black-2">Booked Seat</p>
+            </div>
+            <div className="flex items-center">
+              <MdOutlineChair className="text-3xl text-yellow-500" />
+              <p className="ml-2 text-sm text-black-2">Selected Seat</p>
             </div>
           </div>
-          {/* Reservation */}
-          <div className="w-full flex items-center justify-center gap-6 border"></div>
-        </div>
-      </div>
-      {/* Seat Selection */}
-      <div className="col-span-2 w-full bg-white rounded-xl px-4 py-6 border shadow-sm">
-        <h4 className="text-lg font-bold mb-4">Selected Seats</h4>
-        <div>
-          {selectedSeats.length > 0 ? (
-            <ul>
-              {selectedSeats.map((seat) => (
-                <li key={seat}>{seat}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>No seats selected.</p>
-          )}
         </div>
         {showError && (
-          <p className="text-red-500 mt-4">
+          <p className="text-red-500 mt-4 text-center">
             You can select up to 10 seats only.
           </p>
         )}

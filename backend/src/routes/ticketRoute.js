@@ -7,7 +7,7 @@ const ticketRoute = express.Router();
  * @swagger
  * /api/tickets:
  *   get:
- *     summary: Get all tickets with optional filters for departure and destination
+ *     summary: Get all tickets with optional filters and pagination
  *     tags:
  *       - Tickets
  *     parameters:
@@ -31,9 +31,31 @@ const ticketRoute = express.Router();
  *         schema:
  *           type: string
  *         description: Destination location filter
+ *       - in: query
+ *         name: types
+ *         schema:
+ *           type: string  // Changed from 'array' to 'string' to accept a comma-separated list of types
+ *         description: Filter by ticket types (comma-separated string of type names)
+ *       - in: query
+ *         name: models
+ *         schema:
+ *           type: string  // Changed from 'array' to 'string' to accept a comma-separated list of model names
+ *         description: Filter by bus models (comma-separated string of model names)
+ *       - in: query
+ *         name: priceMin
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Minimum price filter
+ *       - in: query
+ *         name: priceMax
+ *         schema:
+ *           type: number
+ *           format: float
+ *         description: Maximum price filter
  *     responses:
  *       200:
- *         description: Successfully retrieved tickets with pagination
+ *         description: Successfully retrieved tickets with filters and pagination
  *         content:
  *           application/json:
  *             schema:
@@ -61,7 +83,9 @@ const ticketRoute = express.Router();
  *       500:
  *         description: Internal server error
  */
+
 ticketRoute.route('/').get(TicketController.getAllTickets);
+
 
 /**
  * @swagger
