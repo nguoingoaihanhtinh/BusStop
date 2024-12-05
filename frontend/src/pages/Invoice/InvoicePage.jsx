@@ -14,15 +14,16 @@ const InvoicePage = () => {
     console.log('data',orderData)
     const ticketId = orderData?.TicketId;
     const userId = orderData?.UserId;
+    const orderId = orderData?.OrderId;
 
-    const {data: orderDetails} = useGetOrderDetailQuery(orderData.OrderId);
-    const orderDetail = orderDetails?.data || {}
+    const { data: orderDetails, isLoading: orderLoading } = useGetOrderDetailQuery(orderId);
+    const orderDetail = orderDetails?.data || {};
     // Fetch ticket details based on TicketId
     const { data: ticketDetails, isLoading: ticketLoading } = useGetTicketByIdQuery(ticketId);
     const ticketData = ticketDetails?.data || {};
     // Fetch user details based on UserId
 
-    if (ticketLoading ) {
+    if (ticketLoading || orderLoading) {
         return <div>Loading...</div>; // Show loading state
     }
 

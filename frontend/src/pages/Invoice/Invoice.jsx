@@ -7,7 +7,7 @@ console.log('ticket',ticket)
 const orderDetail = order?.order;
 const userDetail = order?.user;
 console.log('order',order)
-const total = ticket.price * ticket.Seats.length;
+const total = ticket.price * orderDetail.Seats.length;
 console.log('total',total)
   return (
     <div className='w-[1000px] flex '>
@@ -24,7 +24,7 @@ console.log('total',total)
                     <div className="userInfo flex flex-col py-2 gap-3">
                         <h3 className="text-base text-black">Name of Passenger: {userDetail.Username}</h3>
                         <h3 className="text-base text-black">
-                            Total Seat No.: {ticket.Seats.map(seat => seat.SeatNumber).join(', ')}
+                            Total Seat No.: {orderDetail.Seats.map(seat => seat.SeatNumber).join(', ')}
                         </h3>
 
                         <h3 className="text-base text-black">Pickup Station: {orderDetail.Address}</h3>

@@ -181,10 +181,6 @@ export const getTicketById = async (req, res) => {
             "NumberRating",
           ], // Select specific bus fields
         },
-        {
-          model: Seat,
-          attributes: ["SeatId", "SeatNumber", "Status"], // Include seat attributes
-        },
       ],
     });
 

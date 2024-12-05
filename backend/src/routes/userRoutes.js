@@ -85,7 +85,7 @@ userRoute.route('/login').post(UserController.login);
  * @swagger
  * /api/user/orders:
  *   get:
- *     summary: Get orders for the authenticated user
+ *     summary: Retrieve all orders for the authenticated user
  *     tags:
  *       - Users
  *     responses:
@@ -97,6 +97,7 @@ userRoute.route('/login').post(UserController.login);
  *         description: Internal server error
  */
 userRoute.route('/orders').get(UserController.getUserOrders);
+
 /**
  * @swagger
  * /api/user/orders/create-order:
@@ -113,12 +114,12 @@ userRoute.route('/orders').get(UserController.getUserOrders);
  *             properties:
  *               ticketId:
  *                 type: integer
- *                 description: ID of the ticket
+ *                 description: ID of the ticket (if applicable)
  *               selectedSeats:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of selected seats
+ *                 description: Array of selected seat numbers
  *               totalPrice:
  *                 type: number
  *                 format: float
@@ -128,25 +129,25 @@ userRoute.route('/orders').get(UserController.getUserOrders);
  *                 description: Pickup address for the order
  *               CreatedAt:
  *                 type: string
- *                 format: date
- *                 description: Date the order was created
+ *                 format: date-time
+ *                 description: Date and time the order was created
  *     responses:
  *       201:
  *         description: Order created successfully
  *       400:
- *         description: Incomplete order details
+ *         description: Invalid or incomplete order details
  *       401:
  *         description: Unauthorized, token is invalid or missing
  *       500:
  *         description: Internal server error
  */
-
 userRoute.route('/orders/create-order').post(UserController.createOrder);
+
 /**
  * @swagger
  * /api/user/{id}:
  *   get:
- *     summary: Get user details by ID
+ *     summary: Retrieve user details by ID
  *     tags:
  *       - Users
  *     parameters:
@@ -155,7 +156,7 @@ userRoute.route('/orders/create-order').post(UserController.createOrder);
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the user to retrieve
+ *         description: The ID of the user to retrieve
  *     responses:
  *       200:
  *         description: Successfully retrieved user details
@@ -165,11 +166,12 @@ userRoute.route('/orders/create-order').post(UserController.createOrder);
  *         description: Internal server error
  */
 userRoute.route('/:id').get(UserController.getUserById);
+
 /**
  * @swagger
  * /api/user/orders/{orderId}:
  *   get:
- *     summary: Get a specific order by ID for the authenticated user
+ *     summary: Retrieve a specific order by ID for the authenticated user
  *     tags:
  *       - Users
  *     parameters:
@@ -202,10 +204,14 @@ userRoute.route('/:id').get(UserController.getUserById);
  *                           type: string
  *                     order:
  *                       type: object
- *                       description: The order details
+ *                       description: Details of the retrieved order
  *       401:
  *         description: Unauthorized, token is invalid or missing
-*/
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Internal server error
+ */
 userRoute.route('/orders/:orderId').get(UserController.getOrderById);
 
 export default userRoute;

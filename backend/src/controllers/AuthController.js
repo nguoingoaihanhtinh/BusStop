@@ -148,7 +148,11 @@ export const login = async (req, res) => {
         include: [
           {
             association: "Ticket", // Ensure this association exists in your model definitions
-            include: ["Seats"], // Include nested associations if necessary
+          }, 
+          {
+            model: Seat,
+            as: "Seats",
+            attributes: ["SeatId", "SeatNumber"], // Include seat attributes
           },
         ],
         order: [["createdAt", "DESC"]], // Order by most recent
@@ -181,39 +185,49 @@ export const login = async (req, res) => {
       const userId = decoded.id;
   
       // Extract order details from the request body
-      const { ticketId, selectedSeats, totalPrice, address, CreatedAt  } = req.body;
+      const { ticketId, selectedSeats, totalPrice, address, CreatedAt } = req.body;
   
       // Validate input
-      if (!ticketId || !Array.isArray(selectedSeats) || selectedSeats.length === 0 || !totalPrice) {
+      if (
+        !ticketId ||
+        !Array.isArray(selectedSeats) ||
+        selectedSeats.length === 0 ||
+        !totalPrice
+      ) {
         return res.status(400).json({ message: "Invalid or incomplete order details" });
-    }
+      }
   
       // Create the new order
       const newOrder = await Order.create({
         UserId: userId,
         TicketId: ticketId,
-        SelectedSeats: JSON.stringify(selectedSeats), // Convert seats array to JSON string
         TotalPrice: totalPrice,
         Address: address,
-        CreatedAt: new Date(),
+        CreatedAt: CreatedAt || new Date(),
       });
-      await Seat.update(
-        { Status: "reserved" },
-        { where: { SeatNumber: { [Op.in]: selectedSeats }, TicketId: ticketId } }
-      );
+  
+      // Insert selected seats into the Seat table
+      const seatData = selectedSeats.map((seatNumber) => ({
+        OrderId: newOrder.OrderId,
+        SeatNumber: seatNumber,
+      }));
+  
+      await Seat.bulkCreate(seatData);
+  
       res.status(201).json({
         status: "success",
         message: "Order created successfully",
         data: newOrder,
       });
-    }  catch (error) {
+    } catch (error) {
       if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
-          return res.status(401).json({ message: "Invalid or expired token" });
+        return res.status(401).json({ message: "Invalid or expired token" });
       }
       console.error("Error creating order:", error.message || error);
       res.status(500).json({ message: "Failed to create order", error: error.message });
-  }
+    }
   };
+  
   // Controller to get user by ID
 export const getUserById = async (req, res) => {
   const { id } = req.params; // Get user ID from URL parameters
@@ -263,7 +277,10 @@ export const getOrderById = async (req, res) => {
       include: [
         {
           association: "Ticket", // Ensure this association exists in your model definitions
-          include: ["Seats"], // Include nested associations if necessary
+        },
+        {
+          model: Seat,
+          attributes: ["SeatId", "SeatNumber"], // Include seat attributes
         },
       ],
     });
